@@ -130,7 +130,6 @@ const getRenderAsTextFunForUiType = (type: UITypes) => {
       UITypes.DateTime,
       UITypes.CreatedTime,
       UITypes.LastModifiedTime,
-      UITypes.Decimal,
       UITypes.Currency,
       UITypes.Duration,
     ].includes(type)
@@ -228,7 +227,7 @@ export const integrationCategoryNeedDefault = (category: IntegrationsType) => {
   return [IntegrationsType.Ai].includes(category);
 };
 
-export function ncParseProp(v: any): any {
+export function parseProp(v: any): any {
   if (!v) return {};
   try {
     return typeof v === 'string' ? JSON.parse(v) ?? {} : v;
@@ -237,7 +236,7 @@ export function ncParseProp(v: any): any {
   }
 }
 
-export function ncStringifyProp(v: any): string {
+export function stringifyProp(v: any): string {
   if (!v) return '{}';
   try {
     return typeof v === 'string' ? v : JSON.stringify(v) ?? '{}';

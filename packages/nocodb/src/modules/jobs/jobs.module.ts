@@ -1,6 +1,7 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
 import { NocoModule } from '~/modules/noco.module';
+import { getRedisURL, NC_REDIS_TYPE } from '~/helpers/redisHelpers';
 
 // Jobs
 import { ExportService } from '~/modules/jobs/jobs/export-import/export.service';
@@ -31,6 +32,7 @@ import { InitMigrationJobs } from '~/modules/jobs/migration-jobs/init-migration-
 import { AttachmentMigration } from '~/modules/jobs/migration-jobs/nc_job_001_attachment';
 import { ThumbnailMigration } from '~/modules/jobs/migration-jobs/nc_job_002_thumbnail';
 import { OrderColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_005_order_column';
+import { RecoverOrderColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_007_recover_order_column';
 import { NoOpMigration } from '~/modules/jobs/migration-jobs/nc_job_no_op';
 
 // Jobs Module Related
@@ -51,10 +53,10 @@ import { CACHE_PREFIX } from '~/utils/globals';
 export const JobsModuleMetadata = {
   imports: [
     forwardRef(() => NocoModule),
-    ...(process.env.NC_REDIS_JOB_URL
+    ...(getRedisURL(NC_REDIS_TYPE.JOB)
       ? [
           BullModule.forRoot({
-            url: process.env.NC_REDIS_JOB_URL,
+            url: getRedisURL(NC_REDIS_TYPE.JOB),
             prefix: CACHE_PREFIX === 'nc' ? undefined : `${CACHE_PREFIX}`,
           }),
           BullModule.registerQueue({
@@ -83,10 +85,10 @@ export const JobsModuleMetadata = {
   providers: [
     JobsMap,
     JobsEventService,
-    ...(process.env.NC_REDIS_JOB_URL ? [] : [FallbackQueueService]),
+    ...(getRedisURL(NC_REDIS_TYPE.JOB) ? [] : [FallbackQueueService]),
     {
       provide: 'JobsService',
-      useClass: process.env.NC_REDIS_JOB_URL
+      useClass: getRedisURL(NC_REDIS_TYPE.JOB)
         ? JobsService
         : FallbackJobsService,
     },
@@ -113,6 +115,7 @@ export const JobsModuleMetadata = {
     CleanupDuplicateColumnMigration,
     OrderColumnMigration,
     NoOpMigration,
+    RecoverOrderColumnMigration,
   ],
   exports: ['JobsService'],
 };

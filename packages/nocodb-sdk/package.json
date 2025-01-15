@@ -1,6 +1,6 @@
 {
   "name": "nocodb-sdk",
-  "version": "0.258.3",
+  "version": "0.260.2",
   "description": "NocoDB SDK",
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",
@@ -44,6 +44,7 @@
     "dayjs": "^1.11.11"
   },
   "devDependencies": {
+    "@types/express": "^4.17.21",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
     "@types/jest": "^29.5.12",

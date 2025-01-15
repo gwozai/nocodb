@@ -14,7 +14,7 @@ export enum Language {
   fa = 'فارسی',
   fi = 'Suomalainen',
   fr = 'Français',
-  he = 'עִברִית',
+  he = 'עברית',
   hi = 'हिन्दी',
   hr = 'Hrvatski',
   hu = 'Magyar',
@@ -78,6 +78,15 @@ export enum SmartsheetStoreEvents {
   GROUP_BY_REMOVE = 'group-by-remove',
   FILTER_ADD = 'filter-add',
   CELL_SELECTED = 'cell-selected',
+}
+
+export enum SmartsheetScriptActions {
+  UPDATE_PROGRESS = 'update-progress',
+  RESET_PROGRESS = 'reset-progress',
+  ACTION = 'action',
+
+  RELOAD_VIEW = 'reload-view',
+  RELOAD_ROW = 'reload-row',
 }
 
 export enum DataSourcesSubTab {

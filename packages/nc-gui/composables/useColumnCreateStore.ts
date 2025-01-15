@@ -1,6 +1,6 @@
 import rfdc from 'rfdc'
 import type { ColumnReqType, ColumnType, TableType } from 'nocodb-sdk'
-import { ButtonActionsType, UITypes, isAIPromptCol, isLinksOrLTAR } from 'nocodb-sdk'
+import { ButtonActionsType, UITypes, isAIPromptCol, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { RuleObject } from 'ant-design-vue/es/form'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
@@ -56,6 +56,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const isWebhookCreateModalOpen = ref(false)
 
+    const isScriptCreateModalOpen = ref(false)
+
     const isAiButtonConfigModalOpen = ref(false)
 
     const isEdit = computed(() => !!column?.value?.id)
@@ -65,6 +67,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const isPg = computed(() => isPgFunc(meta.value?.source_id ? meta.value?.source_id : Object.keys(sqlUis.value)[0]))
 
     const isMssql = computed(() => isMssqlFunc(meta.value?.source_id ? meta.value?.source_id : Object.keys(sqlUis.value)[0]))
+
+    const isSystem = computed(() => isSystemColumn(column.value))
 
     const isXcdbBase = computed(() =>
       isXcdbBaseFunc(meta.value?.source_id ? meta.value?.source_id : Object.keys(sqlUis.value)[0]),
@@ -355,8 +359,11 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             formState.value.validate = ''
           }
 
+          // ignore filters from payload since it's not required
+          const { filters: _, ...updateData } = formState.value
+
           try {
-            await $api.dbTableColumn.update(column.value?.id as string, formState.value)
+            await $api.dbTableColumn.update(column.value?.id as string, updateData)
           } catch (e: any) {
             if (!validateInfos.formula_raw) validateInfos.formula_raw = {}
             validateInfos.formula_raw!.validateStatus = 'error'
@@ -431,7 +438,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       }
     }
 
-    function updateFieldName(updateFormState: boolean = true) {
+    function updateFieldName(updateFormState = true) {
       if (
         formState.value?.is_ai_field ||
         isEdit.value ||
@@ -482,6 +489,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       isWebhookCreateModalOpen,
       isAiButtonConfigModalOpen,
       isMysql,
+      isSystem,
       isXcdbBase,
       disableSubmitBtn,
       setPostSaveOrUpdateCbk,
@@ -492,6 +500,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       loadData,
       tableExplorerColumns,
       defaultFormState,
+      isScriptCreateModalOpen,
     }
   },
 )

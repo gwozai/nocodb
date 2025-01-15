@@ -7,6 +7,7 @@ import type {
   FilterType,
   MetaType,
   PaginatedType,
+  PublicAttachmentScope,
   Roles,
   RolesObj,
   TableType,
@@ -30,6 +31,7 @@ interface User {
   base_id?: string
   display_name?: string | null
   featureFlags?: Record<string, boolean>
+  meta?: MetaType
 }
 
 interface ProjectMetaInfo {
@@ -79,6 +81,11 @@ interface Row {
     isLoading?: boolean
     isValidationFailed?: boolean
     isRowOrderUpdated?: boolean
+    isDragging?: boolean
+    rowProgress?: {
+      message: string
+      progress: number
+    }
 
     new?: boolean
     selected?: boolean
@@ -252,10 +259,27 @@ interface ImageCropperConfig {
      * @default true
      */
     fillDefault?: boolean
+    circlePreview?: boolean
   }
   minHeight?: number
   minWidth?: number
   imageRestriction?: 'fill-area' | 'fit-area' | 'stencil' | 'none'
+}
+
+interface ImageCropperProps {
+  imageConfig: {
+    src: string
+    type: string
+    name: string
+  }
+  cropperConfig: ImageCropperConfig
+  uploadConfig?: {
+    path?: string
+    scope?: PublicAttachmentScope
+    // filesize in bytes
+    maxFileSize?: number
+  }
+  showCropper: boolean
 }
 
 interface AuditLogsQuery {
@@ -308,6 +332,31 @@ type SordDirectionType = 'asc' | 'desc' | undefined
 
 type NestedArray<T> = T | NestedArray<T>[]
 
+interface ViewActionState {
+  viewProgress: {
+    progress: number
+    message?: string
+  } | null
+  rowProgress: Map<
+    string,
+    {
+      progress: number
+      message?: string
+    }
+  >
+  cellProgress: Map<
+    string,
+    Map<
+      string,
+      {
+        progress: number
+        message?: string
+        icon?: keyof typeof iconMap
+      }
+    >
+  >
+}
+
 export type {
   User,
   ProjectMetaInfo,
@@ -338,10 +387,12 @@ export type {
   CalendarRangeType,
   FormFieldsLimitOptionsType,
   ImageCropperConfig,
+  ImageCropperProps,
   AuditLogsQuery,
   NcTableColumnProps,
   SordDirectionType,
   ProductFeedItem,
   Attachment,
   NestedArray,
+  ViewActionState,
 }

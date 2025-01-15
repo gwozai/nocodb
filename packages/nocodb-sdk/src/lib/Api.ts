@@ -225,6 +225,8 @@ export interface AuditType {
    * @example <span class="">Date</span>   : <span class="text-decoration-line-through red px-2 lighten-4 black--text">2023-03-12</span>   <span class="black--text green lighten-4 px-2"></span>
    */
   details?: string;
+  /** Version of the audit */
+  version?: number;
 }
 
 /**
@@ -333,8 +335,6 @@ export interface IntegrationType {
   is_private?: BoolType;
   /** Model for Bool */
   is_default?: BoolType;
-  /** Model for Bool */
-  is_global?: BoolType;
   /** Integration Type */
   type?: IntegrationsType;
   /**
@@ -1172,6 +1172,8 @@ export interface ButtonType {
   parsed_tree?: object;
   /** Webhook ID */
   fk_webhook_id?: IdType;
+  /** Script ID */
+  fk_script_id?: IdType;
   /** Foreign Key to Column */
   fk_column_id?: IdType;
   /** Comma separated column ids to be updated with the generated value */
@@ -2169,6 +2171,20 @@ export interface PaginatedType {
 }
 
 /**
+ * Model for Paginated
+ */
+export interface PaginatedV3Type {
+  /** URL to access next page */
+  next?: string;
+  /** URL to access previous page */
+  prev?: string;
+  /** URL to access current page data with next set of nested fields data */
+  nestedNext?: string;
+  /** URL to access current page data with previous set of nested fields data */
+  nestedPrev?: string;
+}
+
+/**
  * Model for Password
  * @example password123456789
  */
@@ -2337,6 +2353,8 @@ export interface BaseType {
    * @example my-base
    */
   title?: string;
+  /** ID of custom url */
+  fk_custom_url_id?: StringOrNullType;
 }
 
 /**
@@ -2419,6 +2437,26 @@ export interface ProjectUpdateReqType {
 export interface ProjectUserReqType {
   /** Base User Email */
   email: string;
+  /** Base User Role */
+  roles:
+    | 'no-access'
+    | 'commenter'
+    | 'editor'
+    | 'guest'
+    | 'owner'
+    | 'viewer'
+    | 'creator';
+}
+
+/**
+ * Model for Base User Request
+ */
+export interface ProjectUserUpdateReqType {
+  /**
+   * Base User Email
+   * @format email
+   */
+  email?: string;
   /** Base User Role */
   roles:
     | 'no-access'
@@ -2698,6 +2736,8 @@ export interface TableType {
   columns?: ColumnType[];
   /** Column Models grouped by IDs */
   columnsById?: Record<string, any>;
+  /** Hash of columns */
+  columnsHash?: string;
   /** Model for Bool */
   deleted?: BoolType;
   /** Is this table enabled? */
@@ -2792,6 +2832,8 @@ export interface UserType {
   avatar?: string;
   /** Access token version */
   token_version?: string;
+  /** Meta data for user */
+  meta?: MetaType;
 }
 
 /**
@@ -2874,6 +2916,8 @@ export interface ViewType {
     | (FormType & GalleryType & GridType & KanbanType & MapType & CalendarType);
   /** ID of view owner user */
   owned_by?: IdType;
+  /** ID of custom url */
+  fk_custom_url_id?: StringOrNullType;
 }
 
 /**
@@ -3074,6 +3118,8 @@ export interface UserFieldRecordType {
   display_name?: string;
   email: string;
   deleted?: boolean;
+  /** Meta data for user */
+  meta?: MetaType;
 }
 
 export type NestedListCopyPasteOrDeleteAllReqType = {
@@ -3350,6 +3396,27 @@ export enum ButtonActionsType {
   Webhook = 'webhook',
   Url = 'url',
   Ai = 'ai',
+  Script = 'script',
+}
+
+/**
+ * Model for Custom Url
+ */
+export interface CustomUrlType {
+  /** Id associated to the Custom url */
+  id?: string;
+  /** Workspace ID */
+  fk_workspace_id?: string;
+  /** Base ID */
+  base_id?: string;
+  /** Model ID */
+  fk_model_id?: string;
+  /** View ID */
+  view_id?: string;
+  /** Original url used for redirection purpose */
+  original_path?: string;
+  /** Custom url path */
+  custom_path?: string;
 }
 
 import type {
@@ -5364,6 +5431,8 @@ export class Api<
   url?: string,
   \** @example viewer *\
   roles?: string,
+  \** ID of custom url *\
+  fk_custom_url_id?: StringOrNullType,
 
 }` OK
  * @response `400` `{
@@ -5384,6 +5453,8 @@ export class Api<
           url?: string;
           /** @example viewer */
           roles?: string;
+          /** ID of custom url */
+          fk_custom_url_id?: StringOrNullType;
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
@@ -5486,6 +5557,8 @@ export class Api<
   url?: string,
   \** @example viewer *\
   roles?: string,
+  \** ID of custom url *\
+  fk_custom_url_id?: StringOrNullType,
 
 }` OK
  * @response `400` `{
@@ -5496,7 +5569,10 @@ export class Api<
  */
     sharedBaseUpdate: (
       baseId: IdType,
-      data: SharedBaseReqType,
+      data: SharedBaseReqType & {
+        /** Custom url path */
+        custom_url_path?: StringOrNullType;
+      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -5510,6 +5586,8 @@ export class Api<
           url?: string;
           /** @example viewer */
           roles?: string;
+          /** ID of custom url */
+          fk_custom_url_id?: StringOrNullType;
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
@@ -7580,7 +7658,10 @@ export class Api<
  */
     update: (
       viewId: string,
-      data: SharedViewReqType,
+      data: SharedViewReqType & {
+        /** Custom url path */
+        custom_url_path?: StringOrNullType;
+      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -8209,6 +8290,8 @@ export class Api<
         filterArrJson?: string;
         /** Comma separated list of pks */
         pks?: string;
+        /** Get hidden columns on List Api */
+        getHiddenColumns?: string;
       },
       params: RequestParams = {}
     ) =>
@@ -8250,6 +8333,10 @@ export class Api<
       baseName: string,
       tableName: string,
       data: object,
+      query?: {
+        before?: string;
+        undo?: boolean;
+      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -8261,6 +8348,7 @@ export class Api<
       >({
         path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}`,
         method: 'POST',
+        query: query,
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -8593,6 +8681,9 @@ export class Api<
       baseName: string,
       tableName: string,
       data: object[],
+      query?: {
+        undo?: string;
+      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -8606,6 +8697,7 @@ export class Api<
       >({
         path: `/api/v1/db/data/bulk/${orgs}/${baseName}/${tableName}`,
         method: 'POST',
+        query: query,
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -9072,6 +9164,7 @@ export class Api<
         /** Query params for nested data */
         nested?: any;
         offset?: number;
+        getHiddenColumns?: boolean;
       },
       params: RequestParams = {}
     ) =>
@@ -9114,6 +9207,10 @@ export class Api<
       tableName: string,
       viewName: string,
       data: object,
+      query?: {
+        before?: string;
+        undo?: string;
+      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -9125,6 +9222,7 @@ export class Api<
       >({
         path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/views/${viewName}`,
         method: 'POST',
+        query: query,
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -12146,6 +12244,8 @@ export class Api<
       query?: {
         /** View ID */
         viewId?: string;
+        before?: string;
+        undo?: string;
       },
       params: RequestParams = {}
     ) =>
@@ -12282,6 +12382,43 @@ export class Api<
       >({
         path: `/api/v2/tables/${tableId}/records/${rowId}`,
         method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Move the table row to new position
+ * 
+ * @tags DB Data Table Row
+ * @name Move
+ * @summary Move Table Row
+ * @request POST:/api/v2/tables/{tableId}/records/{rowId}/move
+ * @response `200` `object` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    move: (
+      tableId: string,
+      rowId: string,
+      query?: {
+        /** The row ID before which the row should be moved */
+        before?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        object,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v2/tables/${tableId}/records/${rowId}/move`,
+        method: 'POST',
         query: query,
         format: 'json',
         ...params,

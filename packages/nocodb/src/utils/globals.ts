@@ -58,6 +58,9 @@ export enum MetaTable {
   FILE_REFERENCES = 'nc_file_references',
   COL_BUTTON = 'nc_col_button_v2',
   SNAPSHOT = 'nc_snapshots',
+  DATA_REFLECTION = 'nc_data_reflection',
+  CUSTOM_URLS = 'nc_custom_urls_v2',
+  SCRIPTS = 'nc_scripts',
 }
 
 export enum MetaTableOldV2 {
@@ -192,6 +195,9 @@ export enum CacheScope {
   CMD_PALETTE = 'cmdPalette',
   PRODUCT_FEED = 'productFeed',
   SNAPSHOT = 'snapshot',
+  DATA_REFLECTION = 'dataReflection',
+  CUSTOM_URLS = 'customUrls',
+  SCRIPTS = 'nc_scripts',
 }
 
 export enum CacheGetType {
@@ -235,17 +241,19 @@ export const RootScopeTables = {
     MetaTable.NOTIFICATION,
     MetaTable.JOBS,
     MetaTable.FILE_REFERENCES,
+    MetaTable.DATA_REFLECTION,
     // Temporarily added need to be discussed within team
     MetaTable.AUDIT,
+    MetaTable.CUSTOM_URLS,
   ],
   [RootScopes.BASE]: [MetaTable.PROJECT],
   // It's a special case and Workspace is equivalent to org in oss
   [RootScopes.WORKSPACE]: [
-    // COL_BUTTON & COL_LONG_TEXT have integration references which we need to clean
-    MetaTable.COL_BUTTON,
-    MetaTable.COL_LONG_TEXT,
     MetaTable.INTEGRATIONS,
     MetaTable.INTEGRATIONS_STORE,
+    // We need to clear fk_integration_id from following tables
+    MetaTable.COL_BUTTON,
+    MetaTable.COL_LONG_TEXT,
   ],
 };
 

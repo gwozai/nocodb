@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type ViewType } from 'nocodb-sdk'
+import { type ViewType, viewTypeAlias } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -75,6 +75,8 @@ async function onOpenModal({
 }) {
   if (isViewListLoading.value) return
 
+  $e('c:view:create:navdraw', { view: type === 'AI' ? type : viewTypeAlias[type] })
+
   toBeCreateType.value = type
 
   isViewListLoading.value = true
@@ -139,12 +141,12 @@ async function onOpenModal({
   <NcDropdown v-model:visible="isOpen" :overlay-class-name="overlayClassName" destroy-popup-on-hide @click.stop="isOpen = true">
     <slot />
     <template #overlay>
-      <NcMenu class="max-w-48">
+      <NcMenu class="max-w-48" variant="medium">
         <NcMenuItem @click.stop="onOpenModal({ type: ViewTypes.GRID })">
           <div class="item" data-testid="sidebar-view-create-grid">
             <div class="item-inner">
               <GeneralViewIcon :meta="{ type: ViewTypes.GRID }" />
-              <div>Grid</div>
+              <div>{{ $t('objects.viewType.grid') }}</div>
             </div>
 
             <GeneralLoader v-if="toBeCreateType === ViewTypes.GRID && isViewListLoading" />
@@ -162,7 +164,7 @@ async function onOpenModal({
                     'opacity-50': !!source.is_data_readonly,
                   }"
                 />
-                <div>Form</div>
+                <div>{{ $t('objects.viewType.form') }}</div>
               </div>
 
               <GeneralLoader v-if="toBeCreateType === ViewTypes.FORM && isViewListLoading" />
@@ -181,7 +183,7 @@ async function onOpenModal({
           <div class="item" data-testid="sidebar-view-create-gallery">
             <div class="item-inner">
               <GeneralViewIcon :meta="{ type: ViewTypes.GALLERY }" />
-              <div>Gallery</div>
+              <div>{{ $t('objects.viewType.gallery') }}</div>
             </div>
 
             <GeneralLoader v-if="toBeCreateType === ViewTypes.GALLERY && isViewListLoading" />
@@ -192,7 +194,7 @@ async function onOpenModal({
           <div class="item">
             <div class="item-inner">
               <GeneralViewIcon :meta="{ type: ViewTypes.KANBAN }" />
-              <div>Kanban</div>
+              <div>{{ $t('objects.viewType.kanban') }}</div>
             </div>
 
             <GeneralLoader v-if="toBeCreateType === ViewTypes.KANBAN && isViewListLoading" />

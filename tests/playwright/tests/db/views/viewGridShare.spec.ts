@@ -135,8 +135,6 @@ test.describe('Shared view', () => {
 
     if (enableQuickRun()) test.skip();
 
-    // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Address' });
 
     // Unhide City column
@@ -258,7 +256,7 @@ test.describe('Shared view', () => {
 
     // verify download
     await sharedPage.grid.topbar.clickDownload(
-      'Download CSV',
+      'CSV',
       isSqlite(context) || isPg(context) ? 'expectedDataSqlite.txt' : 'expectedData.txt'
     );
   });
@@ -271,8 +269,6 @@ test.describe('Shared view', () => {
      * - Download disabled
      * - Add new record & column after shared view creation; verify
      **/
-
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Country' });
 
     sharedLink = await dashboard.grid.topbar.getSharedViewUrl(false, 'p@ssword', true);

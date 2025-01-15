@@ -358,11 +358,13 @@ export default class Column<T = any> implements ColumnType {
           formula: column?.formula,
           formula_raw: column?.formula_raw,
           parsed_tree: column?.parsed_tree,
+          error: column?.error,
           icon: column?.icon,
           type: column.type,
           theme: column.theme,
           color: column.color,
           fk_webhook_id: column?.fk_webhook_id,
+          fk_script_id: column?.fk_script_id,
           label: column.label,
           fk_integration_id: column.fk_integration_id,
           model: column.model,
@@ -625,10 +627,10 @@ export default class Column<T = any> implements ColumnType {
       ? await View.getColumns(context, fk_default_view_id, ncMeta)
       : [];
 
-    const defaultViewColumnOrderMap = defaultViewColumns.reduce((acc, col) => {
-      acc[col.fk_column_id] = col.order;
+    const defaultViewColumnMap = defaultViewColumns.reduce((acc, col) => {
+      acc[col.fk_column_id] = col;
       return acc;
-    }, {} as Record<string, number>);
+    }, {});
 
     if (!isNoneList && !columnsList.length) {
       columnsList = await ncMeta.metaList2(
@@ -663,7 +665,8 @@ export default class Column<T = any> implements ColumnType {
         if (defaultViewColumns.length) {
           m.meta = {
             ...parseMetaProp(m),
-            defaultViewColOrder: defaultViewColumnOrderMap[m.id],
+            defaultViewColOrder: defaultViewColumnMap[m.id]?.order,
+            defaultViewColVisibility: defaultViewColumnMap[m.id]?.show,
           };
         }
 
@@ -1553,7 +1556,7 @@ export default class Column<T = any> implements ColumnType {
       for (const linkCol of ltarColumns) {
         await View.clearSingleQueryCache(
           context,
-          (linkCol.colOptions as LinksColumn).fk_related_model_id,
+          (linkCol as LinksColumn).fk_related_model_id,
           null,
           ncMeta,
         );

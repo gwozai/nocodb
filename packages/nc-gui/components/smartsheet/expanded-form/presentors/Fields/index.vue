@@ -4,7 +4,6 @@ import { type ColumnType } from 'nocodb-sdk'
 /* interface */
 
 const props = defineProps<{
-  store: ReturnType<typeof useProvideExpandedFormStore>
   rowId?: string
   fields: ColumnType[]
   hiddenFields: ColumnType[]
@@ -28,7 +27,7 @@ const newRecordSubmitBtnText = toRef(props, 'newRecordSubmitBtnText')
 
 /* stores */
 
-const { commentsDrawer, changedColumns, isNew, loadRow: _loadRow, row: _row } = props.store
+const { commentsDrawer, changedColumns, isNew, loadRow: _loadRow, row: _row } = useExpandedFormStoreOrThrow()
 
 const { isUIAllowed } = useRoles()
 const { isMobileMode } = useGlobal()
@@ -56,7 +55,6 @@ export default {
       }"
     >
       <SmartsheetExpandedFormPresentorsFieldsColumns
-        :store="props.store"
         :fields="fields"
         :hidden-fields="hiddenFields"
         :is-loading="isLoading"
@@ -76,14 +74,14 @@ export default {
             </NcButton>
 
             <template #overlay>
-              <NcMenu>
-                <NcMenuItem class="text-gray-700" @click="_loadRow()">
+              <NcMenu variant="small">
+                <NcMenuItem @click="_loadRow()">
                   <div v-e="['c:row-expand:reload']" class="flex gap-2 items-center" data-testid="nc-expanded-form-reload">
                     <component :is="iconMap.reload" class="cursor-pointer" />
                     {{ $t('general.reload') }}
                   </div>
                 </NcMenuItem>
-                <NcMenuItem v-if="rowId" class="text-gray-700" @click="!isNew ? emits('copy:record-url') : () => {}">
+                <NcMenuItem v-if="rowId" @click="!isNew ? emits('copy:record-url') : () => {}">
                   <div v-e="['c:row-expand:copy-url']" class="flex gap-2 items-center" data-testid="nc-expanded-form-copy-url">
                     <component :is="iconMap.copy" class="cursor-pointer nc-duplicate-row" />
                     {{ $t('labels.copyRecordURL') }}
@@ -132,46 +130,10 @@ export default {
         active: commentsDrawer && isUIAllowed('commentList'),
       }"
     >
-      <SmartsheetExpandedFormSidebar :store="store" />
+      <SmartsheetExpandedFormSidebar />
     </div>
   </div>
 </template>
-
-<style lang="scss">
-.nc-drawer-expanded-form {
-  @apply xs:my-0;
-
-  .ant-drawer-content-wrapper {
-    @apply !h-[90vh];
-    .ant-drawer-content {
-      @apply rounded-t-2xl;
-    }
-  }
-}
-
-.nc-expanded-cell-header {
-  @apply w-full text-gray-500 !font-weight-500 !text-sm xs:(text-gray-600 mb-2 !text-small) pr-3;
-
-  svg.nc-cell-icon,
-  svg.nc-virtual-cell-icon {
-    @apply !w-3.5 !h-3.5;
-  }
-}
-
-.nc-expanded-cell-header > :nth-child(2) {
-  @apply !text-sm xs:!text-small;
-}
-.nc-expanded-cell-header > :first-child {
-  @apply !text-md pl-2 xs:(pl-0 -ml-0.5);
-}
-.nc-expanded-cell-header:not(.nc-cell-expanded-form-header) > :first-child {
-  @apply pl-0;
-}
-
-.nc-drawer-expanded-form .nc-modal {
-  @apply !p-0;
-}
-</style>
 
 <style lang="scss" scoped>
 :deep(.ant-select-selector) {

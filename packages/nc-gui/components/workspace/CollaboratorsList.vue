@@ -82,7 +82,7 @@ const updateCollaborator = async (collab: any, roles: WorkspaceUserRoles) => {
 
   const res = await _updateCollaborator(collab.id, roles, currentWorkspace.value.id)
   if (!res) return
-  message.success('Successfully updated user role')
+  message.success(t('msg.info.userRoleUpdated'))
 
   collaborators.value?.forEach((collaborator) => {
     if (collaborator.id === collab.id) {
@@ -187,7 +187,7 @@ const isDeleteOrUpdateAllowed = (user) => {
         allow-clear
         :disabled="isCollaboratorsLoading"
         class="nc-input-border-on-value !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
-        placeholder="Search members"
+        :placeholder="$t('title.searchMembers')"
       >
         <template #prefix>
           <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500 group-hover:text-black" />
@@ -229,7 +229,7 @@ const isDeleteOrUpdateAllowed = (user) => {
           </template>
 
           <div v-if="column.key === 'email'" class="w-full flex gap-3 items-center">
-            <GeneralUserIcon size="base" :email="record.email" :name="record.display_name" class="flex-none" />
+            <GeneralUserIcon size="base" :user="record" class="flex-none" />
             <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
               <div class="flex gap-3">
                 <NcTooltip class="truncate max-w-full text-gray-800 capitalize font-semibold" show-on-truncate-only>
@@ -277,22 +277,21 @@ const isDeleteOrUpdateAllowed = (user) => {
           <div v-if="column.key === 'action'">
             <NcDropdown v-if="isOwnerOrCreator || record.id === user.id">
               <NcButton size="small" type="secondary">
-                <component :is="iconMap.threeDotVertical" />
+                <component :is="iconMap.ncMoreVertical" />
               </NcButton>
               <template #overlay>
-                <NcMenu>
+                <NcMenu variant="small">
                   <template v-if="isAdminPanel">
                     <NcMenuItem data-testid="nc-admin-org-user-delete">
                       <GeneralIcon class="text-gray-800" icon="signout" />
                       <span>{{ $t('labels.signOutUser') }}</span>
                     </NcMenuItem>
 
-                    <a-menu-divider class="my-1.5" />
+                    <NcDivider />
                   </template>
                   <NcTooltip :disabled="!isOnlyOneOwner || record.roles !== WorkspaceUserRoles.OWNER">
                     <template #title>
-                      Each workspace must have at least one owner. Please assign another user as the Owner before leaving the
-                      workspace. If you are the last member, consider deleting the workspace instead.
+                      {{ $t('tooltip.leaveWorkspace') }}
                     </template>
                     <NcMenuItem
                       :disabled="!isDeleteOrUpdateAllowed(record)"
@@ -300,7 +299,7 @@ const isDeleteOrUpdateAllowed = (user) => {
                       @click="removeCollaborator(record.id, currentWorkspace?.id)"
                     >
                       <MaterialSymbolsDeleteOutlineRounded />
-                      {{ record.id === user.id ? 'Leave workspace' : 'Remove user' }}
+                      {{ record.id === user.id ? t('activity.leaveWorkspace') : t('activity.removeUser') }}
                     </NcMenuItem>
                   </NcTooltip>
                 </NcMenu>
@@ -327,10 +326,6 @@ const isDeleteOrUpdateAllowed = (user) => {
 </template>
 
 <style scoped lang="scss">
-:deep(.ant-input::placeholder) {
-  @apply text-gray-500;
-}
-
 .badge-text {
   @apply text-[14px] pt-1 text-center;
 }

@@ -230,8 +230,6 @@ test.describe('Clipboard support', () => {
 
     // reload page
     await dashboard.rootPage.reload();
-    // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Sheet1' });
 
     // ########################################
@@ -241,7 +239,7 @@ test.describe('Clipboard support', () => {
     await dashboard.grid.cell.attachment.addFile({
       index: 0,
       columnHeader: 'Attachment',
-      filePath: [`${process.cwd()}/fixtures/sampleFiles/1.json`],
+      filePath: [`${__dirname}/../../../fixtures/sampleFiles/1.json`],
     });
   });
 

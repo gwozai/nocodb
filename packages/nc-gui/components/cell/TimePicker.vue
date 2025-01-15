@@ -13,9 +13,11 @@ const emit = defineEmits(['update:modelValue'])
 
 const { isMysql } = useBase()
 
-const { showNull, isMobileMode } = useGlobal()
+const { showNull } = useGlobal()
 
 const readOnly = inject(ReadonlyInj, ref(false))
+
+const rawReadOnly = inject(RawReadonlyInj, ref(false))
 
 const active = inject(ActiveCellInj, ref(false))
 
@@ -334,12 +336,13 @@ const cellValue = computed(() => localState.value?.format(parseProp(column.value
       class="nc-time-picker h-full flex items-center justify-between ant-picker-input relative"
     >
       <input
+        v-if="!rawReadOnly"
         ref="datePickerRef"
         type="text"
         :value="cellValue"
         :placeholder="placeholder"
         class="nc-time-input border-none outline-none !text-current bg-transparent !focus:(border-none outline-none ring-transparent)"
-        :readonly="readOnly || !!isMobileMode"
+        :readonly="readOnly"
         @blur="onBlur"
         @focus="onFocus"
         @keydown="handleKeydown($event, isOpen)"
@@ -348,6 +351,9 @@ const cellValue = computed(() => localState.value?.format(parseProp(column.value
         @click="clickHandler"
         @input="handleUpdateValue"
       />
+      <span v-else>
+        {{ cellValue }}
+      </span>
 
       <GeneralIcon
         v-if="localState && !readOnly"

@@ -37,7 +37,7 @@ const wrapper = ref()
 
 const { dashboardUrl } = useDashboard()
 
-const { copy } = useClipboard()
+const { copy } = useCopy()
 
 const { isMobileMode } = useGlobal()
 
@@ -96,13 +96,13 @@ const fields = computedInject(FieldsInj, (_fields) => {
   if (props.useMetaFields) {
     if (maintainDefaultViewOrder.value) {
       return (meta.value.columns ?? [])
-        .filter((col) => !isSystemColumn(col))
+        .filter((col) => !isSystemColumn(col) && !!col.meta?.defaultViewColVisibility)
         .sort((a, b) => {
           return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
         })
     }
 
-    return (meta.value.columns ?? []).filter((col) => !isSystemColumn(col))
+    return (meta.value.columns ?? []).filter((col) => !isSystemColumn(col) && !!col.meta?.defaultViewColVisibility)
   }
   return _fields?.value ?? []
 })
@@ -122,6 +122,9 @@ watch(activeViewMode, async (v) => {
     const firstAttachmentField = fields.value?.find((f) => f.uidt === 'Attachment')
     await setCurrentViewExpandedFormMode(viewId, v, props.view?.attachment_mode_column_id ?? firstAttachmentField?.id)
   }
+  // else if (v === 'discussion') {
+  //   await setCurrentViewExpandedFormMode(viewId, v)
+  // }
 })
 
 const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value?.includes(c)) ?? null)
@@ -686,28 +689,28 @@ export default {
           </div>
           <div v-else class="flex-1 flex items-center gap-2 xs:(flex-row-reverse justify-end)">
             <div class="hidden md:flex items-center rounded-lg bg-gray-100 px-2 py-1 gap-2">
-              <GeneralIcon icon="table" />
+              <GeneralIcon icon="table" class="text-gray-700" />
               <span class="nc-expanded-form-table-name">
                 {{ tableTitle }}
               </span>
             </div>
             <div
               v-if="row.rowMeta?.new || props.newRecordHeader"
-              class="flex items-center truncate font-bold text-gray-800 text-base overflow-hidden"
+              class="flex items-center truncate font-bold text-gray-800 text-xl overflow-hidden"
             >
               {{ props.newRecordHeader ?? $t('activity.newRecord') }}
             </div>
             <div
               v-else-if="displayValue && !row?.rowMeta?.new"
-              class="flex items-center font-bold text-gray-800 text-base overflow-hidden"
+              class="flex items-center font-bold text-gray-800 text-2xl overflow-hidden"
             >
-              <span class="truncate w-[128px]">
+              <span class="truncate w-[120px] md:w-[300px]">
                 <LazySmartsheetPlainCell v-model="displayValue" :column="displayField" />
               </span>
             </div>
           </div>
         </div>
-        <div class="ml-auto md:mx-auto">
+        <div class="ml-auto">
           <NcSelectTab
             v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_FILE_PREVIEW_MODE)"
             v-model="activeViewMode"
@@ -717,6 +720,7 @@ export default {
             :items="[
               { icon: 'fields', value: 'field' },
               { icon: 'file', value: 'attachment' },
+              // { icon: 'ncMessageSquare', value: 'discussion' },
             ]"
           />
         </div>
@@ -733,7 +737,7 @@ export default {
               size="xsmall"
               @click="save"
             >
-              <div class="xs:px-1">{{ newRecordSubmitBtnText ?? 'Save Record' }}</div>
+              <div class="xs:px-1">{{ newRecordSubmitBtnText ?? $t('activity.saveRow') }}</div>
             </NcButton>
           </NcTooltip>
           <NcTooltip>
@@ -746,9 +750,15 @@ export default {
               size="xsmall"
               @click="copyRecordUrl()"
             >
-              <div v-e="['c:row-expand:copy-url']" data-testid="nc-expanded-form-copy-url" class="flex items-center">
-                <component :is="iconMap.check" v-if="isRecordLinkCopied" class="cursor-pointer nc-duplicate-row h-4 w-4" />
-                <component :is="iconMap.copy" v-else class="cursor-pointer nc-duplicate-row h-4 w-4" />
+              <div
+                v-e="['c:row-expand:copy-url']"
+                data-testid="nc-expanded-form-copy-url"
+                class="flex items-center relative h-4 w-4"
+              >
+                <Transition name="icon-fade" :duration="200">
+                  <component :is="iconMap.check" v-if="isRecordLinkCopied" class="cursor-pointer nc-duplicate-row h-4 w-4" />
+                  <component :is="iconMap.copy" v-else class="cursor-pointer nc-duplicate-row h-4 w-4" />
+                </Transition>
               </div>
             </NcButton>
           </NcTooltip>
@@ -757,8 +767,8 @@ export default {
               <GeneralIcon icon="threeDotVertical" class="text-md" :class="isLoading ? 'text-gray-300' : 'text-gray-700'" />
             </NcButton>
             <template #overlay>
-              <NcMenu>
-                <NcMenuItem class="text-gray-700" @click="_loadRow()">
+              <NcMenu variant="small">
+                <NcMenuItem @click="_loadRow()">
                   <div v-e="['c:row-expand:reload']" class="flex gap-2 items-center" data-testid="nc-expanded-form-reload">
                     <component :is="iconMap.reload" class="cursor-pointer" />
                     {{ $t('general.reload') }} {{ $t('objects.record') }}
@@ -767,7 +777,7 @@ export default {
                 <NcMenuItem
                   v-if="!isNew && rowId"
                   type="secondary"
-                  class="!lg:hidden text-gray-700"
+                  class="!lg:hidden"
                   :disabled="isLoading"
                   @click="copyRecordUrl()"
                 >
@@ -776,7 +786,7 @@ export default {
                     {{ $t('labels.copyRecordURL') }}
                   </div>
                 </NcMenuItem>
-                <NcMenuItem v-if="isUIAllowed('dataEdit')" class="text-gray-700" @click="!isNew ? onDuplicateRow() : () => {}">
+                <NcMenuItem v-if="isUIAllowed('dataEdit')" @click="!isNew ? onDuplicateRow() : () => {}">
                   <div v-e="['c:row-expand:duplicate']" class="flex gap-2 items-center" data-testid="nc-expanded-form-duplicate">
                     <component :is="iconMap.duplicate" class="cursor-pointer nc-duplicate-row" />
                     <span class="-ml-0.25">
@@ -819,7 +829,6 @@ export default {
       <div ref="wrapper" class="flex-grow h-[calc(100%_-_4rem)] w-full">
         <template v-if="activeViewMode === 'field'">
           <SmartsheetExpandedFormPresentorsFields
-            :store="expandedFormStore"
             :row-id="rowId"
             :fields="fields ?? []"
             :hidden-fields="hiddenFields"
@@ -838,7 +847,6 @@ export default {
         </template>
         <template v-else-if="activeViewMode === 'attachment'">
           <SmartsheetExpandedFormPresentorsAttachments
-            :store="expandedFormStore"
             :row-id="rowId"
             :view="props.view"
             :fields="fields ?? []"
@@ -854,6 +862,11 @@ export default {
             @update:model-value="emits('update:modelValue', $event)"
             @created-record="emits('createdRecord', $event)"
             @update-row-comment-count="emits('updateRowCommentCount', $event)"
+          />
+        </template>
+        <template v-else-if="activeViewMode === 'discussion'">
+          <SmartsheetExpandedFormPresentorsDiscussion
+            :is-unsaved-duplicated-record-exist="isUnsavedDuplicatedRecordExist"
           />
         </template>
       </div>

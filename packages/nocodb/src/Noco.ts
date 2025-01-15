@@ -13,10 +13,13 @@ import type { IEventEmitter } from '~/modules/event-emitter/event-emitter.interf
 import type { Express } from 'express';
 import type http from 'http';
 import type Sharp from 'sharp';
+import type { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { AppModule } from '~/app.module';
 import { isEE, T } from '~/utils';
-import { Integration } from '~/models';
+import { getAppUrl } from '~/utils/appUrl';
+import { DataReflection, Integration } from '~/models';
+import { getRedisURL } from '~/helpers/redisHelpers';
 
 dotenv.config();
 
@@ -28,9 +31,7 @@ export default class Noco {
   protected static _server: Express;
 
   public static get dashboardUrl(): string {
-    const siteUrl = `http://localhost:${process.env.PORT || 8080}`;
-
-    return `${siteUrl}${this._this?.config?.dashboardPath}`;
+    return getAppUrl();
   }
 
   public static config: any;
@@ -38,6 +39,7 @@ export default class Noco {
   public readonly router: express.Router;
   public readonly baseRouter: express.Router;
   public static _ncMeta: any;
+  public static appHooksService: AppHooksService;
   public readonly metaMgr: any;
   public readonly metaMgrv2: any;
   public env: string;
@@ -120,7 +122,7 @@ export default class Noco {
     }
 
     if (process.env.NC_WORKER_CONTAINER === 'true') {
-      if (!process.env.NC_REDIS_URL) {
+      if (!getRedisURL()) {
         throw new Error('NC_REDIS_URL is required');
       }
       process.env.NC_DISABLE_TELE = 'true';
@@ -142,6 +144,8 @@ export default class Noco {
 
     await nestApp.init();
 
+    await nestApp.enableShutdownHooks();
+
     const dashboardPath = process.env.NC_DASHBOARD_URL ?? '/dashboard';
     server.use(express.static(path.join(__dirname, 'public')));
 
@@ -150,6 +154,10 @@ export default class Noco {
     }
 
     await Integration.init();
+
+    if (process.env.NC_WORKER_CONTAINER !== 'true') {
+      await DataReflection.init();
+    }
 
     return nestApp.getHttpAdapter().getInstance();
   }

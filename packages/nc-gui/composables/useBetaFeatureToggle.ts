@@ -9,9 +9,23 @@ const FEATURES = [
     enabled: true,
   },
   {
+    id: 'link_to_another_record',
+    title: 'Link To Another Record',
+    description: 'Enable LTAR for links',
+    enabled: false,
+  },
+  {
     id: 'ai_features',
     title: 'AI features',
     description: 'Unlock AI features to enhance your NocoDB experience.',
+    enabled: false,
+    isEngineering: true,
+    isEE: true,
+  },
+  {
+    id: 'nocodb_scripts',
+    title: 'NocoDB Scripts (Beta)',
+    description: 'Enable NocoDB Scripts to automate repetetive workflow',
     enabled: false,
     isEngineering: true,
     isEE: true,
@@ -22,6 +36,14 @@ const FEATURES = [
     description: 'Enable dynamic integrations.',
     enabled: false,
     isEngineering: true,
+  },
+  {
+    id: 'data_reflection',
+    title: 'Data reflection',
+    description: 'Enable data reflection.',
+    enabled: false,
+    isEngineering: true,
+    isEE: true,
   },
   {
     id: 'geodata_column',
@@ -41,7 +63,7 @@ const FEATURES = [
     id: 'extensions',
     title: 'Extensions',
     description: 'Extensions allows you to add new features or functionalities to the NocoDB platform.',
-    enabled: false,
+    enabled: (window as any)?.isPlaywright,
     isEngineering: true,
   },
   {
@@ -56,6 +78,7 @@ const FEATURES = [
     title: 'Allow configuring Date Time Field as End Date for Calendar View',
     description: 'Enables the calendar to display items as date ranges by allowing configuration of both start and end dates. ',
     enabled: false,
+    isEE: true,
     isEngineering: true,
   },
   {
@@ -63,7 +86,24 @@ const FEATURES = [
     title: 'Expanded form file preview mode',
     description: 'Preview mode allow you to see attachments inline',
     enabled: false,
+    isEE: true,
     isEngineering: true,
+  },
+  {
+    id: 'expanded_form_record_audits',
+    title: 'Expanded form record audits',
+    description: 'Record audits allow you to see each change on a record and who made it',
+    enabled: false,
+    isEE: true,
+    isEngineering: true,
+  },
+  {
+    id: 'language',
+    title: 'Language',
+    description: 'Community/AI Translated',
+    enabled: false,
+    isEngineering: true,
+    isEE: true,
   },
 ] as const
 

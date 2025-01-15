@@ -23,6 +23,7 @@ export const IsExpandedBulkUpdateFormOpenInj: InjectionKey<Ref<boolean>> = Symbo
 export const CellValueInj: InjectionKey<Ref<any>> = Symbol('cell-value-injection')
 export const ActiveViewInj: InjectionKey<Ref<ViewType>> = Symbol('active-view-injection')
 export const ReadonlyInj: InjectionKey<Ref<boolean>> = Symbol('readonly-injection')
+export const RawReadonlyInj: InjectionKey<Ref<boolean>> = Symbol('raw-readonly-injection')
 export const RowHeightInj: InjectionKey<Ref<1 | 2 | 4 | 6 | undefined>> = Symbol('row-height-injection')
 export const ScrollParentInj: InjectionKey<Ref<HTMLElement | undefined>> = Symbol('scroll-parent-injection')
 /** when shouldShowLoading bool is passed, it indicates if a loading spinner should be visible while reloading */
@@ -64,10 +65,19 @@ export const SidebarTableInj: InjectionKey<Ref<TableType>> = Symbol('sidebar-tab
 export const TreeViewInj: InjectionKey<{
   setMenuContext: (type: 'base' | 'base' | 'table' | 'main' | 'layout', value?: any) => void
   duplicateTable: (table: TableType) => void
-  openRenameTableDialog: (table: TableType, rightClick: boolean) => void
+  handleTableRename: (
+    table: TableType,
+    title: string,
+    orignalTitle: string,
+    updateTitle: (title: string) => void,
+    undo?: boolean,
+    disableTitleDiffCheck?: boolean,
+  ) => void
   openViewDescriptionDialog: (view: ViewType) => void
+  openAutomationDescriptionDialog?: (automation: any) => void
   openTableDescriptionDialog: (table: TableType) => void
   contextMenuTarget: { type?: 'base' | 'base' | 'table' | 'main' | 'layout'; value?: any }
+  tableRenameId: Ref<string>
 }> = Symbol('tree-view-functions-injection')
 export const CalendarViewTypeInj: InjectionKey<Ref<'week' | 'month' | 'day' | 'year'>> = Symbol('calendar-view-type-injection')
 export const JsonExpandInj: InjectionKey<Ref<boolean>> = Symbol('json-expand-injection')

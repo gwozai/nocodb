@@ -29,10 +29,9 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emits = defineEmits(['update:modelValue'])
 
-const { modelValue } = toRefs(props)
+const { modelValue, readOnly } = toRefs(props)
 
-const { hideMinimap, lang, validate, disableDeepCompare, readOnly, autoFocus, monacoConfig, monacoCustomTheme, placeholder } =
-  props
+const { hideMinimap, lang, validate, disableDeepCompare, autoFocus, monacoConfig, monacoCustomTheme, placeholder } = props
 
 const vModel = computed<string>({
   get: () => {
@@ -107,7 +106,7 @@ onMounted(async () => {
       lineNumbers: 'off',
       tabSize: monacoConfig.tabSize || 2,
       automaticLayout: true,
-      readOnly,
+      readOnly: readOnly.value,
       bracketPairColorization: {
         enabled: true,
         independentColorPoolPerBracketType: true,
@@ -141,9 +140,22 @@ onMounted(async () => {
       new PlaceholderContentWidget(placeholder, editor)
     }
 
-    if (!isDrawerOrModalExist() && autoFocus) {
+    const activeDrawerOrModal = isDrawerOrModalExist()
+
+    if (!activeDrawerOrModal && autoFocus) {
       // auto focus on json cells only
       editor.focus()
+    }
+
+    if (activeDrawerOrModal?.classList.contains('json-modal') && autoFocus) {
+      setTimeout(() => {
+        const lineCount = editor.getModel()?.getLineCount() ?? 0
+        const lastLineLength = editor.getModel()?.getLineContent(lineCount).length ?? 0
+        const endPosition = { lineNumber: lineCount, column: lastLineLength + 1 }
+        editor.setPosition(endPosition)
+        editor.revealPositionInCenter(endPosition)
+        editor.focus()
+      }, 200)
     }
 
     if (lang === 'json') {
@@ -165,14 +177,11 @@ watch(vModel, (v) => {
   }
 })
 
-watch(
-  () => readOnly,
-  (v) => {
-    if (!editor) return
+watch(readOnly, (v) => {
+  if (!editor) return
 
-    editor.updateOptions({ readOnly: v })
-  },
-)
+  editor.updateOptions({ readOnly: v })
+})
 </script>
 
 <template>
@@ -183,6 +192,9 @@ watch(
 :deep(.monaco-editor) {
   background-color: transparent !important;
   border-radius: 8px !important;
+  .view-line * {
+    font-family: 'DM Mono', monospace !important;
+  }
 }
 
 :deep(.overflow-guard) {

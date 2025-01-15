@@ -18,8 +18,9 @@ const isEE = process.env.EE
 export default defineConfig({
   extract: {
     include: [
-      isEE ? '../**/*.{vue,html,jsx,tsx,css,scss}' : '**/*.{vue,html,jsx,tsx,css,scss}',
-      isEE ? '../extensions/**/*.md' : 'extensions/**/*.md',
+      ...(isEE
+        ? ['../**/*.{vue,html,jsx,tsx,css,scss}', '../extensions/**/*.md']
+        : ['**/*.{vue,html,jsx,tsx,css,scss}', 'extensions/**/*.md']),
     ],
     exclude: ['node_modules', '.git'],
   },
@@ -106,6 +107,7 @@ export default defineConfig({
       borderColor: {
         primary: 'rgba(51, 102, 255, 1)',
         accent: 'rgba(var(--color-accent), var(--tw-border-opacity))',
+        error: 'var(--ant-error-color)',
       },
       backgroundColor: {
         primary: 'rgba(var(--color-primary), var(--tw-bg-opacity))',
@@ -122,6 +124,7 @@ export default defineConfig({
         'selected-ai': '0px 0px 0px 2px rgba(125, 38, 205, 0.24)',
         'error': '0px 0px 0px 2px var(--ant-error-color-outline)',
         'focus': '0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe',
+        'nc-sm': '0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02)',
       },
       colors: {
         ...windiColors,

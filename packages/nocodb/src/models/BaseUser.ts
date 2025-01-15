@@ -151,6 +151,7 @@ export default class BaseUser {
           `${MetaTable.USERS}.invite_token`,
           `${MetaTable.USERS}.roles as main_roles`,
           `${MetaTable.USERS}.created_at as created_at`,
+          `${MetaTable.USERS}.meta`,
           `${MetaTable.PROJECT_USERS}.base_id`,
           `${MetaTable.PROJECT_USERS}.roles as roles`,
         );
@@ -172,6 +173,8 @@ export default class BaseUser {
       baseUser = await queryBuilder.first();
 
       if (baseUser) {
+        baseUser.meta = parseMetaProp(baseUser);
+
         await NocoCache.set(
           `${CacheScope.BASE_USER}:${baseId}:${userId}`,
           baseUser,
@@ -195,10 +198,12 @@ export default class BaseUser {
       mode = 'full',
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       include_ws_deleted = true,
+      user_ids,
     }: {
       base_id: string;
       mode?: 'full' | 'viewer';
       include_ws_deleted?: boolean;
+      user_ids?: string[];
     },
     ncMeta = Noco.ncMeta,
   ): Promise<(Partial<User> & BaseUser)[]> {
@@ -218,6 +223,7 @@ export default class BaseUser {
           `${MetaTable.USERS}.invite_token`,
           `${MetaTable.USERS}.roles as main_roles`,
           `${MetaTable.USERS}.created_at as created_at`,
+          `${MetaTable.USERS}.meta`,
           `${MetaTable.PROJECT_USERS}.base_id`,
           `${MetaTable.PROJECT_USERS}.roles as roles`,
         );
@@ -237,7 +243,11 @@ export default class BaseUser {
       baseUsers = await queryBuilder;
 
       baseUsers = baseUsers.map((baseUser) => {
-        baseUser.base_id = base_id;
+        if (baseUser) {
+          baseUser.base_id = base_id;
+          baseUser.meta = parseMetaProp(baseUser);
+        }
+
         return this.castType(baseUser);
       });
 
@@ -245,6 +255,10 @@ export default class BaseUser {
         'base_id',
         'id',
       ]);
+    }
+
+    if (user_ids) {
+      baseUsers = baseUsers.filter((u) => user_ids.includes(u.id));
     }
 
     if (mode === 'full') {

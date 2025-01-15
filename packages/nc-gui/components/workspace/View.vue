@@ -128,8 +128,8 @@ onMounted(() => {
         <a-tab-pane key="collaborators" class="w-full">
           <template #tab>
             <div class="tab-title">
-              <GeneralIcon icon="users" class="!h-3.5 !w-3.5" />
-              Members
+              <GeneralIcon icon="users" class="h-4 w-4" />
+              {{ $t('labels.members') }}
             </div>
           </template>
           <WorkspaceCollaboratorsList :workspace-id="currentWorkspace.id" />
@@ -140,8 +140,8 @@ onMounted(() => {
         <a-tab-pane key="settings" class="w-full">
           <template #tab>
             <div class="tab-title" data-testid="nc-workspace-settings-tab-settings">
-              <GeneralIcon icon="settings" />
-              Settings
+              <GeneralIcon icon="ncSettings" class="h-4 w-4" />
+              {{ $t('labels.settings') }}
             </div>
           </template>
           <WorkspaceSettings :workspace-id="currentWorkspace.id" />
@@ -152,8 +152,8 @@ onMounted(() => {
         <a-tab-pane key="audit" class="w-full">
           <template #tab>
             <div class="tab-title">
-              <GeneralIcon icon="audit" class="!h-3.5 !w-3.5" />
-              Audit Logs
+              <GeneralIcon icon="audit" class="h-4 w-4" />
+              {{ $t('title.auditLogs') }}
             </div>
           </template>
           <div class="h-[calc(100vh-92px)] px-6">

@@ -56,8 +56,20 @@ let hookRef = reactive<
     payload: {
       method: 'POST',
       body: '{{ json event }}',
-      headers: [{}],
-      parameters: [{}],
+      headers: [
+        {
+          enabled: false,
+          name: '',
+          value: '',
+        },
+      ],
+      parameters: [
+        {
+          enabled: false,
+          name: '',
+          value: '',
+        },
+      ],
       path: '',
     },
   },
@@ -270,7 +282,7 @@ function onNotificationTypeChange(reset = false) {
     hookRef.notification.payload.parameters = hookRef.notification.payload.parameters || [{}]
     hookRef.notification.payload.headers = hookRef.notification.payload.headers || [{}]
     hookRef.notification.payload.method = hookRef.notification.payload.method || 'POST'
-    hookRef.notification.payload.auth = hookRef.notification.payload.auth || ''
+    hookRef.notification.payload.auth = hookRef.notification.payload.auth ?? ''
   }
 }
 
@@ -586,7 +598,7 @@ onMounted(async () => {
     <template #header>
       <div class="flex w-full items-center p-4 justify-between">
         <div class="flex items-center gap-3">
-          <GeneralIcon class="text-gray-900 text-2xl" icon="webhook" />
+          <GeneralIcon class="text-gray-900 h-5 w-5" icon="ncWebhook" />
           <span class="text-gray-900 font-semibold text-xl">
             {{ !hook ? $t('activity.newWebhook') : $t('activity.webhookDetails') }}
           </span>

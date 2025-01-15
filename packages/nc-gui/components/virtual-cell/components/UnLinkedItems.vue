@@ -50,6 +50,8 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const isExpandedFormCloseAfterSave = ref(false)
 
+const isNewRecord = ref(false)
+
 isChildrenExcludedLoading.value = true
 
 const isForm = inject(IsFormInj, ref(false))
@@ -222,6 +224,7 @@ const addNewRecord = () => {
   expandedFormRow.value = {}
   expandedFormDlg.value = true
   isExpandedFormCloseAfterSave.value = true
+  isNewRecord.value = true
 }
 
 const onCreatedRecord = (record: any) => {
@@ -233,6 +236,12 @@ const onCreatedRecord = (record: any) => {
   reloadViewDataTrigger?.trigger({
     shouldShowLoading: false,
   })
+
+  if (!isNewRecord.value) {
+    vModel.value = false
+
+    return
+  }
 
   const msgVNode = h(
     'div',
@@ -263,6 +272,7 @@ const onCreatedRecord = (record: any) => {
   message.success(msgVNode)
 
   vModel.value = false
+  isNewRecord.value = false
 }
 
 const linkedShortcuts = (e: KeyboardEvent) => {
@@ -483,19 +493,18 @@ const handleKeyDown = (e: KeyboardEvent) => {
         :row="{
           row: expandedFormRow,
           oldRow: {},
-          rowMeta:
-            Object.keys(expandedFormRow).length > 0
-              ? {}
-              : {
-                  new: true,
-                },
+          rowMeta: !isNewRecord
+            ? {}
+            : {
+                new: true,
+              },
         }"
         :row-id="extractPkFromRow(expandedFormRow, relatedTableMeta.columns as ColumnType[])"
         :state="newRowState"
         use-meta-fields
         maintain-default-view-order
         :skip-reload="true"
-        new-record-submit-btn-text="Create & Link"
+        :new-record-submit-btn-text="!isNewRecord ? undefined : 'Create & Link'"
         @created-record="onCreatedRecord"
       />
     </Suspense>

@@ -1,4 +1,5 @@
-import type { ColumnType, CommentType, TableType } from 'nocodb-sdk'
+import type { ColumnType, CommentType, MetaType, TableType } from 'nocodb-sdk'
+import { NcMarkdownParser } from '~/helpers/tiptap'
 
 const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<TableType>, row: Ref<Row>) => {
   const isCommentsLoading = ref(false)
@@ -12,9 +13,25 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
       CommentType & {
         created_display_name: string
         resolved_display_name?: string
+        created_by_meta?: MetaType
+        resolved_by_meta?: MetaType
       }
     >
   >([])
+
+  const parsedHtmlComments = computed(() => {
+    return comments.value.reduce((acc, comment) => {
+      if (comment.id) {
+        let commentValue = unref(comment.comment)
+        if (comment.updated_at !== comment.created_at && comment.updated_at) {
+          const str = timeAgo(comment.updated_at).replace(' ', '_')
+          commentValue += ` [(edited)](a~~~###~~~Edited_${str}) `
+        }
+        acc[comment.id] = NcMarkdownParser.parse(commentValue) ?? ''
+      }
+      return acc
+    }, {} as Record<string, any>)
+  })
 
   const basesStore = useBases()
 
@@ -48,8 +65,10 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
         const resolvedUser = comment.resolved_by ? baseUsers.value.find((u) => u.id === comment.resolved_by) : null
         return {
           ...comment,
-          created_display_name: user?.display_name ?? (user?.email ?? '').split('@')[0],
+          created_display_name: user?.display_name ?? (user?.email ?? '').split('@')[0] ?? '',
           resolved_display_name: resolvedUser ? resolvedUser.display_name ?? resolvedUser.email.split('@')[0] : undefined,
+          created_by_meta: user?.meta,
+          resolved_by_meta: resolvedUser?.meta,
         }
       })
     } catch (e: unknown) {
@@ -112,6 +131,7 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
             resolved_display_name: tempC.resolved_by
               ? undefined
               : $state.user?.value?.display_name ?? $state.user?.value?.email.split('@')[0],
+            resolved_by_meta: tempC.resolved_by ? undefined : $state.user?.value?.meta,
           }
         }
         return c
@@ -221,6 +241,7 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
     deleteComment,
     isCommentsLoading,
     primaryKey,
+    parsedHtmlComments,
   }
 })
 

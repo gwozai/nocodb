@@ -57,6 +57,7 @@ const {
   isLastRow,
   isFirstRow,
   chunkStates,
+  updateRecordOrder,
   clearInvalidRows,
   isRowSortRequiredRows,
   applySorting,
@@ -311,7 +312,7 @@ const pGoToPreviousRow = () => {
       :bulk-update-rows="pBulkUpdateRows"
       :expand-form="expandForm"
       :remove-row-if-new="pRemoveRowIfNew"
-      :row-height="rowHeight"
+      :row-height-enum="rowHeight"
       @toggle-optimised-query="toggleOptimisedQuery"
       @bulk-update-dlg="bulkUpdateDlg = true"
     />
@@ -328,6 +329,7 @@ const pGoToPreviousRow = () => {
       :apply-sorting="applySorting"
       :bulk-update-rows="bulkUpdateRows"
       :bulk-upsert-rows="bulkUpsertRows"
+      :update-record-order="updateRecordOrder"
       :bulk-delete-all="bulkDeleteAll"
       :clear-cache="clearCache"
       :clear-invalid-rows="clearInvalidRows"

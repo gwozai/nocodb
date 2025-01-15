@@ -3,6 +3,8 @@ const { user, signOut, appInfo } = useGlobal()
 // So watcher in users store is triggered
 useUsers()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const { leftSidebarState } = storeToRefs(useSidebarStore())
 
 const name = computed(() => user.value?.display_name?.trim())
@@ -65,31 +67,27 @@ const accountUrl = computed(() => {
 </script>
 
 <template>
-  <div class="flex w-full flex-col py-0.9 px-1 border-gray-200 gap-y-1">
+  <div class="flex w-full flex-col border-gray-200 gap-y-1">
     <LazyGeneralMaintenanceAlert />
-    <div class="flex items-center pr-2 justify-between">
+    <div class="flex items-center justify-between">
       <NcDropdown v-model:visible="isMenuOpen" placement="topLeft" overlay-class-name="!min-w-64">
         <div
-          class="flex flex-row py-1 px-3 gap-x-2 items-center hover:bg-gray-200 rounded-lg cursor-pointer h-8"
+          class="flex flex-row py-1 px-3 gap-x-2 items-center text-gray-700 hover:bg-gray-200 rounded-lg cursor-pointer h-8"
           data-testid="nc-sidebar-userinfo"
         >
-          <GeneralUserIcon :email="user?.email" size="auto" :name="user?.display_name" />
-          <NcTooltip>
-            <div class="flex max-w-32 truncate">
-              {{ name ? name : user?.email }}
-            </div>
-
+          <GeneralUserIcon :user="user" size="medium" />
+          <NcTooltip class="max-w-32 truncate" show-on-truncate-only>
             <template #title>
-              <span>
-                {{ name ? name : user?.email }}
-              </span>
+              {{ name ? name : user?.email }}
             </template>
+
+            {{ name ? name : user?.email }}
           </NcTooltip>
 
           <GeneralIcon icon="chevronDown" class="flex-none !min-w-5 transform rotate-180 !text-gray-500" />
         </div>
         <template #overlay>
-          <NcMenu data-testid="nc-sidebar-userinfo">
+          <NcMenu data-testid="nc-sidebar-userinfo" variant="small">
             <NcMenuItem data-testid="nc-sidebar-user-logout" @click="logout">
               <div v-e="['c:user:logout']" class="flex gap-2 items-center">
                 <GeneralLoader v-if="isLoggingOut" class="!ml-0.5 !mr-0.5 !max-h-4.5 !-mt-0.5" />
@@ -134,9 +132,14 @@ const accountUrl = computed(() => {
                 <span class="menu-btn"> {{ $t('labels.twitter') }} </span>
               </NcMenuItem>
             </a>
-            <template v-if="!appInfo.ee">
+            <template v-if="!appInfo.ee || isFeatureEnabled(FEATURE_FLAG.LANGUAGE)">
               <NcDivider />
-              <a-popover key="language" class="lang-menu !py-1.5" placement="rightBottom">
+              <a-popover
+                key="language"
+                class="lang-menu !py-1.5"
+                placement="rightBottom"
+                overlay-class-name="nc-lang-menu-overlay"
+              >
                 <NcMenuItem>
                   <div v-e="['c:translate:open']" class="flex gap-2 items-center">
                     <GeneralIcon icon="translate" class="group-hover:text-black nc-language ml-0.25 menu-icon" />
@@ -151,7 +154,7 @@ const accountUrl = computed(() => {
                 </NcMenuItem>
 
                 <template #content>
-                  <div class="bg-white max-h-50vh scrollbar-thin-dull min-w-64 !overflow-auto">
+                  <div class="bg-white max-h-50vh min-w-64 mb-1 nc-scrollbar-thin -mr-1.5 pr-1.5">
                     <LazyGeneralLanguageMenu />
                   </div>
                 </template>
@@ -194,7 +197,6 @@ const accountUrl = computed(() => {
                 <GeneralIcon icon="bulb" class="menu-icon mt-0.5" />
                 <span class="menu-btn"> {{ $t('general.featurePreview') }} </span>
               </NcMenuItem>
-
               <nuxt-link v-e="['c:user:settings']" class="!no-underline" :to="accountUrl">
                 <NcMenuItem> <GeneralIcon icon="ncSettings" class="menu-icon" /> {{ $t('title.accountSettings') }} </NcMenuItem>
               </nuxt-link>
@@ -222,10 +224,6 @@ const accountUrl = computed(() => {
   font-size: 1rem;
 }
 
-:deep(.ant-popover-inner-content) {
-  @apply !p-0 !rounded-md;
-}
-
 .social-icon {
   @apply my-0.5 w-4 h-4 stroke-transparent;
   // Make icon black and white
@@ -246,6 +244,18 @@ const accountUrl = computed(() => {
     .social-icon {
       filter: none !important;
     }
+  }
+}
+</style>
+
+<style lang="scss">
+.nc-lang-menu-overlay {
+  .ant-popover-inner {
+    @apply !rounded-lg;
+  }
+
+  .ant-popover-inner-content {
+    @apply !bg-transparent;
   }
 }
 </style>

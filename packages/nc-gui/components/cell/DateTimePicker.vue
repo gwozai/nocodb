@@ -21,9 +21,11 @@ const timeFormatsObj = {
 
 const { isMssql, isXcdbBase } = useBase()
 
-const { showNull, isMobileMode } = useGlobal()
+const { showNull } = useGlobal()
 
 const readOnly = inject(ReadonlyInj, ref(false))
+
+const rawReadOnly = inject(RawReadonlyInj, ref(false))
 
 const active = inject(ActiveCellInj, ref(false))
 
@@ -302,7 +304,7 @@ onUnmounted(() => {
   cellClickHook?.on(cellClickHandler)
 })
 
-const clickHandler = (e: MouseEvent, _isDatePicker: boolean = false) => {
+const clickHandler = (e: MouseEvent, _isDatePicker = false) => {
   isDatePicker.value = _isDatePicker
 
   if (cellClickHook) {
@@ -311,7 +313,7 @@ const clickHandler = (e: MouseEvent, _isDatePicker: boolean = false) => {
   cellClickHandler()
 }
 
-const handleKeydown = (e: KeyboardEvent, _open?: boolean, _isDatePicker: boolean = false) => {
+const handleKeydown = (e: KeyboardEvent, _open?: boolean, _isDatePicker = false) => {
   if (e.key !== 'Enter') {
     e.stopPropagation()
   }
@@ -490,11 +492,12 @@ const currentDate = ($event) => {
           }"
         >
           <input
+            v-if="!rawReadOnly"
             ref="datePickerRef"
             :value="localState?.format(dateFormat) ?? ''"
             :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.date"
             class="nc-date-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none outline-none ring-transparent)"
-            :readonly="!!isMobileMode || isColDisabled"
+            :readonly="isColDisabled"
             @focus="onFocus(true)"
             @blur="onBlur($event, true)"
             @keydown="handleKeydown($event, isOpen, true)"
@@ -503,6 +506,9 @@ const currentDate = ($event) => {
             @click.stop="clickHandler($event, true)"
             @input="handleUpdateValue($event, true)"
           />
+          <span v-else>
+            {{ localState?.format(dateFormat) ?? '' }}
+          </span>
         </div>
         <div
           class="flex-none rounded-md box-border flex-1"
@@ -517,11 +523,12 @@ const currentDate = ($event) => {
           ]"
         >
           <input
+            v-if="!rawReadOnly"
             ref="timePickerRef"
             :value="cellValue"
             :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.time"
             class="nc-time-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none outline-none ring-transparent)"
-            :readonly="!!isMobileMode || isColDisabled"
+            :readonly="isColDisabled"
             @focus="onFocus(false)"
             @blur="onBlur($event, false)"
             @keydown="handleKeydown($event, open)"
@@ -530,6 +537,9 @@ const currentDate = ($event) => {
             @click.stop="clickHandler($event, false)"
             @input="handleUpdateValue($event, false)"
           />
+          <span v-else>
+            {{ cellValue }}
+          </span>
         </div>
       </div>
 
